@@ -2,6 +2,7 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
+  Delete,
   Get,
   HttpException,
   HttpStatus,
@@ -12,17 +13,20 @@ import {
   Req,
   Res,
   UseFilters,
+  UseGuards,
   UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { Public } from 'src/auth/decorators/public.decorator';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
 import { CreateUserDto } from 'src/users/dtos/create-user.dto';
 import { ExampleFilter } from 'src/users/filters/example/example.filter';
 import { UsersService } from 'src/users/services/users/users.service';
 
 @Controller('users')
-export class UsersController {
+export default class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
@@ -43,6 +47,7 @@ export class UsersController {
   }
 
   @Post('nest')
+  @Public()
   @UsePipes(ValidationPipe)
   async createNest(@Body() userDetails: CreateUserDto) {
     // this.usersService.insert(userDetails);
@@ -50,10 +55,11 @@ export class UsersController {
   }
 
   @Get(':id')
-  findById(@Param('id', ParseIntPipe) id: number) {
+  @UseGuards(JwtAuthGuard)
+  async findById(@Param('id', ParseIntPipe) id: number) {
     // console.log(id);
     // console.log(typeof id);
-    const user = this.usersService.fetchById(id);
+    const user = await this.usersService.fetchById(id);
     if (!user) {
       // throw new HttpException('user not found', HttpStatus.NOT_FOUND);
     }
@@ -71,5 +77,10 @@ export class UsersController {
       );
     }
     return users;
+  }
+
+  @Delete('id/:id')
+  async delete(@Param('id', ParseIntPipe) id: number) {
+    await this.usersService.remove(id);
   }
 }

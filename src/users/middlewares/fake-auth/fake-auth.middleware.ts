@@ -5,7 +5,7 @@ import { NextFunction, Request, Response } from 'express';
 export class FakeAuthMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     // if (req.method === 'GET' && req.url === '/users') {
-    //   console.log('get all users is not authorized!');
+    //   console.log('get all users is not allowed!');
     //   return res.sendStatus(401);
     // }
     next();
